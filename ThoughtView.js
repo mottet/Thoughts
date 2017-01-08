@@ -26,7 +26,7 @@ export default class ThoughtView extends Component{
                                                                 && this.state.canMove,
             onPanResponderMove: Animated.event([null, {
                                     dx: this.state.pan.x,
-                                    dy: this.state.pan.y}]);,
+                                    dy: this.state.pan.y}]),
             onPanResponderRelease: () => {
                 Animated.spring( this.state.pan,
                 {toValue: {x: 0, y: 0}}
