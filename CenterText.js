@@ -17,7 +17,6 @@ export default class CenterText extends Component{
 				    <Animated.Text style={{ fontSize : 40,
                                             fontFamily : 'courier new',
 				                            color : 'black',
-
                                             opacity: this.props.flexValue.interpolate({
                                                          inputRange: [-100, 0, 100],
                                                          outputRange: [0, 1, 0]

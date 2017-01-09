@@ -56,30 +56,33 @@ export default class ScrollTest extends Component{
         }
     }
 
-    moveAnimation(value)
+    moveAnimation(value, _delay)
     {
+        if (arguments.length < 2)
+            _delay = 0;
         Animated.timing(
             this.state.flexValue,
-            {toValue: value}
+            {toValue: value,
+            delay: _delay}
         ).start();
     }
 
     moveHappySmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Happy);
+        this.moveSmileysFlex(enumSmiley.Happy, 0);
     }
 
     moveNeutralSmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Neutral);
+        this.moveSmileysFlex(enumSmiley.Neutral, 0);
     }
 
     moveSadSmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Sad);
+        this.moveSmileysFlex(enumSmiley.Sad, 0);
     }
 
-    moveSmileysFlex(_smiley)
+    moveSmileysFlex(_smiley, _delay)
     {
         if (this.state.slide !== enumSlide.Center)
         {
@@ -110,7 +113,8 @@ export default class ScrollTest extends Component{
             }
             Animated.timing(
                 this.state.smileysFlex,
-                {toValue: value}
+                {toValue: value,
+                delay: _delay}
             ).start();
         }
     }
@@ -164,9 +168,9 @@ export default class ScrollTest extends Component{
     goBackToMain()
     {
         if (this.state.smiley !== enumSmiley.None)
-            this.moveSmileysFlex(this.state.smiley);
+            this.moveSmileysFlex(this.state.smiley, 500);
         this.state.slide = enumSlide.Center;
-        this.moveAnimation(0);
+        this.moveAnimation(0, 100);
     }
 
 	render(){
@@ -183,36 +187,33 @@ export default class ScrollTest extends Component{
                                         flexDirection: 'row'}}>
 
                     <Smiley smileysFlex={this.state.smileysFlex}
-                            bandRange={[10000, 10000, 10000, 1, 10000, 1]}
-                            color={'#002fa7'}
+                            felling={enumSmiley.Happy}
                             moveSmiley={this.moveHappySmiley}
-                            smileyImg={require('./images/happySmiley.png')}
                             flexValue={this.state.flexValue}
                             imgRange={[0, 0, 1]}
                             smiley={this.state.smiley}
                             goMain={this.goBackToMain}
+                            isTop={true}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
-                            bandRange={[10000, 1, 10000, 10000, 10000, 1]}
-                            color={'#4c6dc1'}
+                            felling={enumSmiley.Neutral}
                             moveSmiley={this.moveNeutralSmiley}
-                            smileyImg={require('./images/neutralSmiley.png')}
                             flexValue={this.state.flexValue}
                             imgRange={[0, 0, 1]}
                             smiley={this.state.smiley}
                             goMain={this.goBackToMain}
+                            isTop={true}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
-                            bandRange={[10000, 1, 10000, 1, 10000, 10000]}
-                            color={'#99abdb'}
+                            felling={enumSmiley.Sad}
                             moveSmiley={this.moveSadSmiley}
-                            smileyImg={require('./images/sadSmiley.png')}
                             flexValue={this.state.flexValue}
                             imgRange={[0, 0, 1]}
                             smiley={this.state.smiley}
                             goMain={this.goBackToMain}
+                            isTop={true}
                             />
                 </Animated.View>
 
@@ -226,37 +227,34 @@ export default class ScrollTest extends Component{
                                                                  }),
                                         flexDirection: 'row'}}>
 
-                   <Smiley smileysFlex={this.state.smileysFlex}
-                           bandRange={[10000, 10000, 10000, 1, 10000, 1]}
-                           color={'#002fa7'}
+                   <Smiley felling={enumSmiley.Happy}
+                           smileysFlex={this.state.smileysFlex}
                            moveSmiley={this.moveHappySmiley}
-                           smileyImg={require('./images/happySmiley.png')}
                            flexValue={this.state.flexValue}
                            imgRange={[1, 0, 0]}
                            smiley={this.state.smiley}
                            goMain={this.goBackToMain}
+                           isTop={false}
                            />
 
-                   <Smiley smileysFlex={this.state.smileysFlex}
-                           bandRange={[10000, 1, 10000, 10000, 10000, 1]}
-                           color={'#4c6dc1'}
+                   <Smiley felling={enumSmiley.Neutral}
+                           smileysFlex={this.state.smileysFlex}
                            moveSmiley={this.moveNeutralSmiley}
-                           smileyImg={require('./images/neutralSmiley.png')}
                            flexValue={this.state.flexValue}
                            imgRange={[1, 0, 0]}
                            smiley={this.state.smiley}
                            goMain={this.goBackToMain}
+                           isTop={false}
                            />
 
-                   <Smiley smileysFlex={this.state.smileysFlex}
-                           bandRange={[10000, 1, 10000, 1, 10000, 10000]}
-                           color={'#99abdb'}
+                   <Smiley felling={enumSmiley.Sad}
+                           smileysFlex={this.state.smileysFlex}
                            moveSmiley={this.moveSadSmiley}
-                           smileyImg={require('./images/sadSmiley.png')}
                            flexValue={this.state.flexValue}
                            imgRange={[1, 0, 0]}
                            smiley={this.state.smiley}
                            goMain={this.goBackToMain}
+                           isTop={false}
                            />
 
                 </Animated.View>

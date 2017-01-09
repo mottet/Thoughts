@@ -16,11 +16,17 @@ export default class Smiley extends Component{
 
             this.animThought = this.animThought.bind(this);
             this.goBackToMain = this.goBackToMain.bind(this);
-            this.state = {textFlex: new Animated.Value(0),
-                            listenTextFlex: 0,
-                            listenFlexValue: 0,
-                            heightWindow: Dimensions.get('window').height,
-                            widthWindow: Dimensions.get('window').width};
+            this.state = {
+                textFlex: new Animated.Value(0),
+                listenTextFlex: 0,
+                listenFlexValue: 0,
+                heightWindow: Dimensions.get('window').height,
+                widthWindow: Dimensions.get('window').width,
+                bandRange: paramSmiley.bandRange[this.props.felling],
+                color: paramSmiley.color[this.props.felling],
+                smileyImg: paramSmiley.smileyImg[this.props.felling]
+                };
+
         }
 
         componentWillMount(){
@@ -49,56 +55,90 @@ export default class Smiley extends Component{
         {
             Animated.timing(
                 this.state.textFlex,
-                {toValue: 0}
+                {toValue: 0,
+                delay: 0}
             ).start();
             this.props.goMain();
         }
 
         render() {
-            console.log(Math.abs(this.state.listenFlexValue));
             return(
 
                 <Animated.View style={[styles.band,
                                        {flex: this.props.smileysFlex.interpolate({
                                             inputRange: [0, 100, 200, 300, 400, 500],
-                                            outputRange: this.props.bandRange
+                                            outputRange: this.state.bandRange
                                             }),
-                                        backgroundColor: this.props.color}]}>
+                                        backgroundColor: this.state.color}]}>
 
+                    {this.props.isTop &&
                     <Animated.View style={{flex: this.state.textFlex.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [1, 5]
-                                                }),
-                                            width : this.state.textFlex.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [0, this.state.widthWindow]
-                                                }),
-                                            opacity: this.state.textFlex,
-                                            flexDirection: 'row',
-                                            justifyContent: 'center',
-                                            alignItems: 'center'
-                                            }}>
-                        <ThoughtView smiley={this.props.smiley}
-                                        goMain={this.goBackToMain}
-                                        />
+                                               inputRange: [0, 1],
+                                               outputRange: [1, 11]
+                                               }),
+                                           width : this.state.textFlex.interpolate({
+                                               inputRange: [0, 1],
+                                               outputRange: [0, this.state.widthWindow]
+                                               }),
+                                           opacity: this.state.textFlex,
+                                           flexDirection: 'row',
+                                           justifyContent: 'center',
+                                           alignItems: 'center'
+                    }}>
+                       <ThoughtView goMain={this.goBackToMain}
+                                    isTop={this.props.isTop}/>
                     </Animated.View>
+                    }
 
-                    <View style={{flex: 2}}>
+                    <View style={{  flex: 8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'}}>
                     <TouchableOpacity onPressOut={this.animThought}
-                                        disabled={
-                                                    this.props.smiley !== enumSmiley.None}>
-                        <Animated.Image source={this.props.smileyImg}
+                                        disabled={this.props.smiley !== enumSmiley.None &&
+                                                  this.state.listenFlexValue !== (this.props.isTop100 ?
+                                                                                  100 : - 100)}>
+                        <Animated.Image source={this.state.smileyImg}
                          style={{width: this.state.widthWindow / 3,
                                 height: this.state.widthWindow / 3,
                                 opacity: this.props.flexValue.interpolate({
                                      inputRange: [-100, 1, 100],
                                      outputRange: this.props.imgRange
                                      })}} />
-                   </TouchableOpacity>
-                   </View>
+                    </TouchableOpacity>
+                    </View>
+
+                    {!this.props.isTop &&
+                    <Animated.View style={{flex: this.state.textFlex.interpolate({
+                                               inputRange: [0, 1],
+                                               outputRange: [1, 11]
+                                               }),
+                                           width : this.state.textFlex.interpolate({
+                                               inputRange: [0, 1],
+                                               outputRange: [0, this.state.widthWindow]
+                                               }),
+                                           opacity: this.state.textFlex,
+                                           flexDirection: 'row',
+                                           justifyContent: 'center',
+                                           alignItems: 'center'
+                    }}>
+                       <ThoughtView goMain={this.goBackToMain}
+                                    isTop={this.props.isTop}/>
+                    </Animated.View>
+                    }
+
                </Animated.View>
             )
         }
+}
+
+paramSmiley = {
+    bandRange: [[10000, 10000, 10000, 1, 10000, 1],
+                [10000, 1, 10000, 10000, 10000, 1],
+                [10000, 1, 10000, 1, 10000, 10000]],
+    color: ['#002fa7', '#4c6dc1', '#99abdb'],
+    smileyImg : [require('./images/happySmiley.png'),
+                require('./images/neutralSmiley.png'),
+                require('./images/sadSmiley.png')]
 }
 
 enumSmiley = {
