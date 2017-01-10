@@ -28,6 +28,7 @@ export default class ScrollTest extends Component{
                             listenToSmileyFlex: 0,
                             slide: enumSlide.Center,
                             smiley: enumSmiley.None,
+                            canPress: false,
                             heightWindow: Dimensions.get('window').height,
                             widthWindow: Dimensions.get('window').width}
         }
@@ -64,7 +65,12 @@ export default class ScrollTest extends Component{
             this.state.flexValue,
             {toValue: value,
             delay: _delay}
-        ).start();
+        ).start(() => {
+            if (Math.abs(this.state.listenToFlexValue) === 100)
+                this.setState({canPress: true});
+            else if (this.state.listenToFlexValue === 0)
+                this.setState({canPress: false});
+        });
     }
 
     moveHappySmiley()
@@ -194,6 +200,7 @@ export default class ScrollTest extends Component{
                             smiley={this.state.smiley}
                             goMain={this.goBackToMain}
                             isTop={true}
+                            canPress={this.state.canPress}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
@@ -204,6 +211,7 @@ export default class ScrollTest extends Component{
                             smiley={this.state.smiley}
                             goMain={this.goBackToMain}
                             isTop={true}
+                            canPress={this.state.canPress}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
@@ -214,6 +222,7 @@ export default class ScrollTest extends Component{
                             smiley={this.state.smiley}
                             goMain={this.goBackToMain}
                             isTop={true}
+                            canPress={this.state.canPress}
                             />
                 </Animated.View>
 
@@ -235,6 +244,7 @@ export default class ScrollTest extends Component{
                            smiley={this.state.smiley}
                            goMain={this.goBackToMain}
                            isTop={false}
+                           canPress={this.state.canPress}
                            />
 
                    <Smiley felling={enumSmiley.Neutral}
@@ -245,6 +255,7 @@ export default class ScrollTest extends Component{
                            smiley={this.state.smiley}
                            goMain={this.goBackToMain}
                            isTop={false}
+                           canPress={this.state.canPress}
                            />
 
                    <Smiley felling={enumSmiley.Sad}
@@ -255,6 +266,7 @@ export default class ScrollTest extends Component{
                            smiley={this.state.smiley}
                            goMain={this.goBackToMain}
                            isTop={false}
+                           canPress={this.state.canPress}
                            />
 
                 </Animated.View>

@@ -76,8 +76,8 @@ export default class ThoughtView extends Component{
     _onReleasePan()
     {
         if (Math.abs(this.state.listenPan.y) > Math.abs(this.state.listenPan.x) &&
-            (this.props.isTop && this.state.listenPan.y / this.state.heightWindow < -0.2) ||
-            (!this.props.isTop && this.state.listenPan.y / this.state.heightWindow > 0.2))
+            (this.props.isTop && this.state.listenPan.y / this.state.heightWindow < -0.15) ||
+            (!this.props.isTop && this.state.listenPan.y / this.state.heightWindow > 0.15))
         {
             // Need to send the massage
             this._inputText.setNativeProps({text:''});

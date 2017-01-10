@@ -74,7 +74,7 @@ export default class Smiley extends Component{
                     {this.props.isTop &&
                     <Animated.View style={{flex: this.state.textFlex.interpolate({
                                                inputRange: [0, 1],
-                                               outputRange: [1, 11]
+                                               outputRange: [1, 15]
                                                }),
                                            width : this.state.textFlex.interpolate({
                                                inputRange: [0, 1],
@@ -83,7 +83,7 @@ export default class Smiley extends Component{
                                            opacity: this.state.textFlex,
                                            flexDirection: 'row',
                                            justifyContent: 'center',
-                                           alignItems: 'center'
+                                           alignItems: 'flex-end'
                     }}>
                        <ThoughtView goMain={this.goBackToMain}
                                     isTop={this.props.isTop}/>
@@ -93,10 +93,9 @@ export default class Smiley extends Component{
                     <View style={{  flex: 8,
                                     justifyContent: 'center',
                                     alignItems: 'center'}}>
-                    <TouchableOpacity onPressOut={this.animThought}
-                                        disabled={this.props.smiley !== enumSmiley.None &&
-                                                  this.state.listenFlexValue !== (this.props.isTop100 ?
-                                                                                  100 : - 100)}>
+                    <TouchableOpacity onPressIn={this.animThought}
+                                        disabled={this.props.smiley !== enumSmiley.None ||
+                                                  !this.props.canPress}>
                         <Animated.Image source={this.state.smileyImg}
                          style={{width: this.state.widthWindow / 3,
                                 height: this.state.widthWindow / 3,
@@ -110,7 +109,7 @@ export default class Smiley extends Component{
                     {!this.props.isTop &&
                     <Animated.View style={{flex: this.state.textFlex.interpolate({
                                                inputRange: [0, 1],
-                                               outputRange: [1, 11]
+                                               outputRange: [1, 15]
                                                }),
                                            width : this.state.textFlex.interpolate({
                                                inputRange: [0, 1],
@@ -119,7 +118,7 @@ export default class Smiley extends Component{
                                            opacity: this.state.textFlex,
                                            flexDirection: 'row',
                                            justifyContent: 'center',
-                                           alignItems: 'center'
+                                           alignItems: 'flex-start'
                     }}>
                        <ThoughtView goMain={this.goBackToMain}
                                     isTop={this.props.isTop}/>
