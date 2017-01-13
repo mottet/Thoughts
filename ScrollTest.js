@@ -3,6 +3,7 @@ import {View,
         StyleSheet,
         Dimensions,
         PanResponder,
+        AsyncStorage,
         Animated} from 'react-native';
 
 import CenterText from './CenterText';
@@ -22,6 +23,8 @@ export default class ScrollTest extends Component{
 
             this.goBackToMain = this.goBackToMain.bind(this);
 
+            this._initialLoadData = this._initialLoadData.bind(this);
+
             this.state = {flexValue: new Animated.Value(0),
                             smileysFlex: new Animated.Value(0),
                             listenToFlexValue: 0,
@@ -30,7 +33,8 @@ export default class ScrollTest extends Component{
                             smiley: enumSmiley.None,
                             canPress: false,
                             heightWindow: Dimensions.get('window').height,
-                            widthWindow: Dimensions.get('window').width}
+                            widthWindow: Dimensions.get('window').width,
+                        	data: require('./Thoughts')}
         }
 
     componentWillMount() {
@@ -44,6 +48,42 @@ export default class ScrollTest extends Component{
             onPanResponderRelease: () => this.moveFinished(),
             onPanResponderTerminate: () => this.moveFinished(),
         })
+
+        this._initialLoadData().done();
+    }
+
+    _initialLoadData = async() =>
+    {
+        try{
+            var value = await AsyncStorage.getItem(this.state.data.KEY_STORAGE);
+            if (value !== null)
+            {
+                this.setState({data:{...this.state.data, keyList: JSON.parse(value)}});
+                this.forceUpdate();
+                console.log('Key List load');
+            }
+            else
+            {
+                console.log('No Key List on storage disk. Creating one.');
+                this.setState({data:{...this.state.data, keyList: [{index: 0, list: []},{index: 0, list: []},{index: 0, list: []}]}});
+                this._setKeyList();
+            }
+        }
+        catch(error){
+            console.log(error.message);
+        }
+        console.log( 'value = ' + this.state.data.keyList[1].index.toString() );
+    }
+
+    _setKeyList = async() =>
+    {
+        try{
+            AsyncStorage.setItem(this.state.data.KEY_STORAGE, JSON.stringify(this.state.data.keyList));
+            console.log('Key List saved.');
+        }
+        catch(error){
+            console.log('Fall to save key list: ' + error.message);
+        }
     }
 
     moveUpView(top) {
@@ -57,10 +97,8 @@ export default class ScrollTest extends Component{
         }
     }
 
-    moveAnimation(value, _delay)
+    moveAnimation(value, _delay = 0)
     {
-        if (arguments.length < 2)
-            _delay = 0;
         Animated.timing(
             this.state.flexValue,
             {toValue: value,
@@ -75,20 +113,20 @@ export default class ScrollTest extends Component{
 
     moveHappySmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Happy, 0);
+        this.moveSmileysFlex(enumSmiley.Happy);
     }
 
     moveNeutralSmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Neutral, 0);
+        this.moveSmileysFlex(enumSmiley.Neutral);
     }
 
     moveSadSmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Sad, 0);
+        this.moveSmileysFlex(enumSmiley.Sad);
     }
 
-    moveSmileysFlex(_smiley, _delay)
+    moveSmileysFlex(_smiley, _delay = 0)
     {
         if (this.state.slide !== enumSlide.Center)
         {
@@ -201,6 +239,7 @@ export default class ScrollTest extends Component{
                             goMain={this.goBackToMain}
                             isTop={true}
                             canPress={this.state.canPress}
+                            data={this.state.data}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
@@ -212,6 +251,7 @@ export default class ScrollTest extends Component{
                             goMain={this.goBackToMain}
                             isTop={true}
                             canPress={this.state.canPress}
+                            data={this.state.data}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
@@ -223,6 +263,7 @@ export default class ScrollTest extends Component{
                             goMain={this.goBackToMain}
                             isTop={true}
                             canPress={this.state.canPress}
+                            data={this.state.data}
                             />
                 </Animated.View>
 
@@ -245,6 +286,7 @@ export default class ScrollTest extends Component{
                            goMain={this.goBackToMain}
                            isTop={false}
                            canPress={this.state.canPress}
+                           data={this.state.data}
                            />
 
                    <Smiley felling={enumSmiley.Neutral}
@@ -256,6 +298,7 @@ export default class ScrollTest extends Component{
                            goMain={this.goBackToMain}
                            isTop={false}
                            canPress={this.state.canPress}
+                           data={this.state.data}
                            />
 
                    <Smiley felling={enumSmiley.Sad}
@@ -267,6 +310,7 @@ export default class ScrollTest extends Component{
                            goMain={this.goBackToMain}
                            isTop={false}
                            canPress={this.state.canPress}
+                           data={this.state.data}
                            />
 
                 </Animated.View>

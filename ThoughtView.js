@@ -4,12 +4,14 @@ import {View,
         StyleSheet,
         Animated,
         TextInput,
+        Text,
         PanResponder,
         Dimensions,
         Keyboard,
+        AsyncStorage,
         TouchableWithoutFeedback} from 'react-native';
 
-const dismissKeyboard = require('dismissKeyboard')
+const dismissKeyboard = require('dismissKeyboard');
 
 export default class ThoughtView extends Component{
     constructor(props) {
@@ -25,6 +27,7 @@ export default class ThoughtView extends Component{
             canMove: true,
             isMoving: false,
             listenPan: 0,
+            text: '',
             heightWindow: Dimensions.get('window').height,
             widthWindow: Dimensions.get('window').width
         };
@@ -80,45 +83,55 @@ export default class ThoughtView extends Component{
             (!this.props.isTop && this.state.listenPan.y / this.state.heightWindow > 0.15))
         {
             // Need to send the massage
-            this._inputText.setNativeProps({text:''});
-            Animated.sequence([
             Animated.spring( this.state.pan,
                             {toValue: { x: this.state.listenPan.x * 3,
-                                        y: this.state.listenPan.y * 3}}),
-            Animated.timing( this.state.pan,
-                            {toValue: {x: 0, y: 0},
-                            duration: 1})
-            ]).start();
+                                        y: this.state.listenPan.y * 3}}).start();
+
+            if (this.props.isTop)
+                this.props._saveThought(this.state.text).done();
+
             this.props.goMain();
+            this.state.pan.setValue({x: 0, y: 0});
+
+            if (this.props.isTop)
+                this._inputText.setNativeProps({text:''});
         }
 
         else if (Math.abs(this.state.listenPan.x) > Math.abs(this.state.listenPan.y) &&
                 Math.abs(this.state.listenPan.x) / this.state.widthWindow > 0.4)
         {
             // Need to delete the massage
-            this._inputText.setNativeProps({text:''});
-            Animated.sequence([
             Animated.spring( this.state.pan,
                             {toValue: { x: this.state.listenPan.x * 3,
-                                        y: this.state.listenPan.y * 3}}),
-            Animated.timing( this.state.pan,
-                            {toValue: {x: 0, y: 0},
-                            duration: 1})
-            ]).start();
+                                        y: this.state.listenPan.y * 3}}).start();
+
+            if (!this.props.isTop && this.props.thoughtindex !== -1)
+                this.props._deleteThought().done();
+
             this.props.goMain();
+            this.state.pan.setValue({x: 0, y: 0});
+
+            if (this.props.isTop)
+                this._inputText.setNativeProps({text:''});
         }
         else
             Animated.spring( this.state.pan,
                             {toValue: {x: 0, y: 0}}
             ).start();
-        this._inputText.setNativeProps({editable : this.props.isTop});
+        if (this.props.isTop)
+            this._inputText.setNativeProps({editable : true});
     }
+
+
 
     render() {
         return (
             <Animated.View
                     {...this.state.panResponder.panHandlers}
                     style={this.state.pan.getLayout()}>
+
+                {
+                this.props.isTop &&
                 <TextInput style={{
                                     height : 300,
                                     width: 300,
@@ -131,8 +144,28 @@ export default class ThoughtView extends Component{
                             ref={component => this._inputText = component}
                             maxLength={1027}
                             autoFocus={false}
+                            onChangeText={(text) => this.setState({text})}
                             editable={this.props.isTop}
                 />
+                }
+
+                {
+                !this.props.isTop &&
+                <Text style={{
+                                height : 300,
+                                width: 300,
+                                fontSize : 30,
+                                fontFamily : 'courier new',
+                                backgroundColor: '#e5eaf6',
+                                }}
+                        multiline={true}
+                        ref={component => this._inputText = component}
+                        maxLength={1027}
+                >
+                {this.props.text}
+                </Text>
+                }
+
             </Animated.View>
         );
     }

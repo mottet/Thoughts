@@ -5,6 +5,7 @@ import {View,
         Animated,
         TouchableOpacity,
         TextInput,
+        AsyncStorage,
         Image} from 'react-native';
 
 import ThoughtView from './ThoughtView';
@@ -16,6 +17,10 @@ export default class Smiley extends Component{
 
             this.animThought = this.animThought.bind(this);
             this.goBackToMain = this.goBackToMain.bind(this);
+            this._loadThought = this._loadThought.bind(this);
+            this._saveThought = this._saveThought.bind(this);
+            this._deleteThought = this._deleteThought.bind(this);
+
             this.state = {
                 textFlex: new Animated.Value(0),
                 listenTextFlex: 0,
@@ -24,7 +29,10 @@ export default class Smiley extends Component{
                 widthWindow: Dimensions.get('window').width,
                 bandRange: paramSmiley.bandRange[this.props.felling],
                 color: paramSmiley.color[this.props.felling],
-                smileyImg: paramSmiley.smileyImg[this.props.felling]
+                smileyImg: paramSmiley.smileyImg[this.props.felling],
+                text: '',
+                index: -1,
+                data: this.props.data
                 };
 
         }
@@ -43,12 +51,129 @@ export default class Smiley extends Component{
                     {toValue: 0}
                 ).start();
             else
+            {
+                if (!this.props.isTop)
+                    this._loadThought().done();
                 Animated.timing(
                     this.state.textFlex,
                     {toValue: 1,
                      delay: 600
                     }
                 ).start();
+            }
+        }
+
+        _replace(curVal, index){
+            if (index === this.props.felling)
+                return {text: this.state.text, index: this.state.index};
+            else
+                return curVal;
+        }
+
+        _loadThought = async() =>
+        {
+            console.log('keyList of ' + this.props.felling.toString() + ' inside Smiley: '
+                        + this.state.data.keyList[this.props.felling].index.toString() + ' with ' +
+                        this.state.data.keyList[this.props.felling].list.toString());
+            if (this.state.data.keyList[this.props.felling].index === 0)
+            {
+                console.log('En effet! C\'est vide! LOL!!');
+
+                this.setState({ text: 'No thought...',
+                                index: -1});
+
+                this.setState({data : {...this.state.data, 
+                                        thought : this.state.data.thought.map(this._replace.bind(this))}});
+                return;
+            }
+            try{
+                var index = Math.floor(Math.random() * this.state.data.keyList[this.props.felling].list.length);
+                console.log('bim');
+                var value = await AsyncStorage.getItem(this.state.data.KEY_THOUGHT[this.props.felling] +
+                                                       this.state.data.keyList[this.props.felling].list[index]);
+                console.log('OK');
+                if (value !== null)
+                {
+                    this.setState({ text: JSON.parse(value).text,
+                                    index: index});
+
+                    this.setState({data : {...this.state.data, 
+                                            thought : this.state.data.thought.map(this._replace.bind(this))}});
+
+                    console.log('Thought loaded: ' + this.state.data.thought[this.props.felling].text);
+                }
+                else
+                {
+                    this.setState({ text: 'Trouble with thought index: ' + index.toString(),
+                                    index: -1});
+
+                    this.setState({data : {...this.state.data, 
+                                            thought : this.state.data.thought.map(this._replace.bind(this))}});
+                }
+
+            }
+            catch(error){
+                console.log(error.message);
+            }
+        }
+
+        _delete(curVal, index){
+            if (index === this.props.felling)
+                return {index: curVal.index, 
+                        list: curVal.list.filter((e, index) => index !== this.state.data.thought[this.props.felling].index)};
+            else
+                return curVal;
+        }
+
+        _deleteThought = async() =>
+        {
+            try{
+                this.setState({data : {...this.state.data, 
+                                        keyList: this.state.data.keyList.map(this._delete.bind(this))
+                                }});
+
+                console.log('Thought delete');
+                AsyncStorage.setItem(this.state.data.KEY_STORAGE, JSON.stringify(this.state.data.keyList));
+                console.log('Key List saved.');
+            }
+            catch(error){
+                console.log('Fall to save key list: ' + error.message);
+            }
+        }
+
+        _save(curVal, index){
+            if (index === this.props.felling)
+                return {index: curVal.index + 1, 
+                        list: curVal.list.concat(curVal.index.toString())};
+            else
+                return curVal;
+        }
+
+        _saveThought = async(newText) =>
+        {
+            try{
+                const index = this.state.data.keyList[this.props.felling].index;
+
+                AsyncStorage.setItem(this.state.data.KEY_THOUGHT[this.props.felling] + index.toString(),
+                                    JSON.stringify({text: newText}));
+
+                console.log('Thought "' + newText + '"saved.');
+
+                this.setState({data : {...this.state.data, 
+                                        keyList: this.state.data.keyList.map(this._save.bind(this))
+                                }});
+
+                console.log('Index push inside key list.', 'Index increment inside key list.');
+                console.log('keyList of ' + this.props.felling.toString() + ' inside ThoughtView: '
+                            + this.state.data.keyList[this.props.felling].index.toString() + ' with ' +
+                            this.state.data.keyList[this.props.felling].list.toString())
+
+                AsyncStorage.setItem(this.state.data.KEY_STORAGE, JSON.stringify(this.state.data.keyList));
+                console.log('Key List saved.');
+            }
+            catch(error){
+                console.log('Fall to save thought or/and key list: ' + error.message);
+            }
         }
 
         goBackToMain()
@@ -86,7 +211,11 @@ export default class Smiley extends Component{
                                            alignItems: 'flex-end'
                     }}>
                        <ThoughtView goMain={this.goBackToMain}
-                                    isTop={this.props.isTop}/>
+                                    isTop={this.props.isTop}
+                                    felling={this.props.felling}
+                                    text={this.state.text}
+                                    _saveThought={this._saveThought}
+                                    _deleteThought={this._deleteThought}/>
                     </Animated.View>
                     }
 
@@ -121,7 +250,12 @@ export default class Smiley extends Component{
                                            alignItems: 'flex-start'
                     }}>
                        <ThoughtView goMain={this.goBackToMain}
-                                    isTop={this.props.isTop}/>
+                                    isTop={this.props.isTop}
+                                    felling={this.props.felling}
+                                    text={this.state.text}
+                                    _saveThought={this._saveThought}
+                                    _deleteThought={this._deleteThought}
+                                    thoughtIndex={this.state.index}/>
                     </Animated.View>
                     }
 
