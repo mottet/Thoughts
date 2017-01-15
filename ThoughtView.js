@@ -88,7 +88,7 @@ export default class ThoughtView extends Component{
                                         y: this.state.listenPan.y * 3}}).start();
 
             if (this.props.isTop)
-                this.props._saveThought(this.state.text).done();
+                this.props._saveThought(this.state.text, this.props.felling).done();
 
             this.props.goMain();
             this.state.pan.setValue({x: 0, y: 0});
@@ -106,7 +106,7 @@ export default class ThoughtView extends Component{
                                         y: this.state.listenPan.y * 3}}).start();
 
             if (!this.props.isTop && this.props.thoughtindex !== -1)
-                this.props._deleteThought().done();
+                this.props._deleteThought(this.props.felling).done();
 
             this.props.goMain();
             this.state.pan.setValue({x: 0, y: 0});

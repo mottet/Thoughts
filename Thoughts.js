@@ -1,8 +1,8 @@
 
 module.exports = {
-    KEY_STORAGE : '@listKeyThoughts6',
-    KEY_THOUGHT: ['@Happy5', '@Neutral5', '@Sad5'],
+    KEY_STORAGE : '@listKeyThoughts8',
+    KEY_THOUGHT: ['@Happy7', '@Neutral7', '@Sad7'],
 
     keyList : [{index: 0, list: []},{index: 0, list: []},{index: 0, list: []}],
-    thought : [{text: '', index: -1}, {text: '', index: -1}, {text: '', index: -1}]
+    thought : {text: '', index: -1}
 }
