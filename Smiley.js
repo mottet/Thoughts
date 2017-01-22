@@ -5,6 +5,7 @@ import {View,
         Animated,
         TouchableOpacity,
         TextInput,
+        AsyncStorage,
         Image} from 'react-native';
 
 import ThoughtView from './ThoughtView';
@@ -16,6 +17,8 @@ export default class Smiley extends Component{
 
             this.animThought = this.animThought.bind(this);
             this.goBackToMain = this.goBackToMain.bind(this);
+
+
             this.state = {
                 textFlex: new Animated.Value(0),
                 listenTextFlex: 0,
@@ -24,7 +27,10 @@ export default class Smiley extends Component{
                 widthWindow: Dimensions.get('window').width,
                 bandRange: paramSmiley.bandRange[this.props.felling],
                 color: paramSmiley.color[this.props.felling],
-                smileyImg: paramSmiley.smileyImg[this.props.felling]
+                smileyImg: paramSmiley.smileyImg[this.props.felling],
+                text: this.props.text,
+                index: this.props.index,
+                data: this.props.data
                 };
 
         }
@@ -43,12 +49,16 @@ export default class Smiley extends Component{
                     {toValue: 0}
                 ).start();
             else
+            {
+                if (!this.props.isTop)
+                    this.props._loadThought(this.props.felling).done();
                 Animated.timing(
                     this.state.textFlex,
                     {toValue: 1,
                      delay: 600
                     }
                 ).start();
+            }
         }
 
         goBackToMain()
@@ -86,7 +96,11 @@ export default class Smiley extends Component{
                                            alignItems: 'flex-end'
                     }}>
                        <ThoughtView goMain={this.goBackToMain}
-                                    isTop={this.props.isTop}/>
+                                    isTop={this.props.isTop}
+                                    felling={this.props.felling}
+                                    text={this.props.text}
+                                    _saveThought={this.props._saveThought}
+                                    _deleteThought={this.props._deleteThought}/>
                     </Animated.View>
                     }
 
@@ -121,7 +135,12 @@ export default class Smiley extends Component{
                                            alignItems: 'flex-start'
                     }}>
                        <ThoughtView goMain={this.goBackToMain}
-                                    isTop={this.props.isTop}/>
+                                    isTop={this.props.isTop}
+                                    felling={this.props.felling}
+                                    text={this.props.text}
+                                    _saveThought={this.props._saveThought}
+                                    _deleteThought={this.props._deleteThought}
+                                    thoughtIndex={this.state.index}/>
                     </Animated.View>
                     }
 

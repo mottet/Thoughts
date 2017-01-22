@@ -3,6 +3,7 @@ import {View,
         StyleSheet,
         Dimensions,
         PanResponder,
+        AsyncStorage,
         Animated} from 'react-native';
 
 import CenterText from './CenterText';
@@ -20,7 +21,13 @@ export default class ScrollTest extends Component{
             this.moveNeutralSmiley = this.moveNeutralSmiley.bind(this);
             this.moveSadSmiley = this.moveSadSmiley.bind(this);
 
+            this._loadThought = this._loadThought.bind(this);
+            this._saveThought = this._saveThought.bind(this);
+            this._deleteThought = this._deleteThought.bind(this);
+
             this.goBackToMain = this.goBackToMain.bind(this);
+
+            this._initialLoadData = this._initialLoadData.bind(this);
 
             this.state = {flexValue: new Animated.Value(0),
                             smileysFlex: new Animated.Value(0),
@@ -30,7 +37,9 @@ export default class ScrollTest extends Component{
                             smiley: enumSmiley.None,
                             canPress: false,
                             heightWindow: Dimensions.get('window').height,
-                            widthWindow: Dimensions.get('window').width}
+                            widthWindow: Dimensions.get('window').width,
+                        	data: require('./Thoughts'),
+                        	felling: -1}
         }
 
     componentWillMount() {
@@ -44,6 +53,158 @@ export default class ScrollTest extends Component{
             onPanResponderRelease: () => this.moveFinished(),
             onPanResponderTerminate: () => this.moveFinished(),
         })
+
+        this._initialLoadData().done();
+    }
+
+    _initialLoadData = async() =>
+    {
+        try{
+            var value = await AsyncStorage.getItem(this.state.data.KEY_STORAGE);
+            if (value !== null)
+            {
+                this.setState({data:{...this.state.data, keyList: JSON.parse(value)}});
+                this.forceUpdate();
+                console.log('Key List load');
+            }
+            else
+            {
+                console.log('No Key List on storage disk. Creating one.');
+                this.setState({data:{...this.state.data, keyList: [{index: 0, list: []},{index: 0, list: []},{index: 0, list: []}]}});
+                this._setKeyList();
+            }
+        }
+        catch(error){
+            console.log(error.message);
+        }
+        console.log( 'value = ' + value );
+    }
+
+    _setKeyList = async() =>
+    {
+        try{
+            AsyncStorage.setItem(this.state.data.KEY_STORAGE, JSON.stringify(this.state.data.keyList));
+            console.log('Key List saved.');
+        }
+        catch(error){
+            console.log('Fall to save key list: ' + error.message);
+        }
+    }
+
+    _replace(curVal, index){
+        if (index === this.props.felling)
+            return {text: this.state.text, index: this.state.index};
+        else
+            return curVal;
+    }
+
+    _loadThought = async(felling) =>
+    {
+        console.log('keyList of ' + felling.toString() + ' inside Smiley: '
+                    + this.state.data.keyList[felling].index.toString() + ' with ' +
+                    this.state.data.keyList[felling].list.toString());
+        if (this.state.data.keyList[felling].list.length === 0)
+        {
+            console.log('En effet! C\'est vide! LOL!!');
+
+            this.setState({data : {...this.state.data,
+                                    thought : {text: 'No thought...', index: -1}},
+                				text: 'No thought...',
+                				index: -1});
+            return;
+        }
+        try{
+            var index = Math.floor(Math.random() * this.state.data.keyList[felling].list.length);
+            console.log('bim');
+            var value = await AsyncStorage.getItem(this.state.data.KEY_THOUGHT[felling] +
+                                                   this.state.data.keyList[felling].list[index]);
+            console.log('OK');
+            if (value !== null)
+            {
+                this.setState({data : {...this.state.data, 
+                                        thought : { text: JSON.parse(value).text,
+                                					index: parseInt(this.state.data.keyList[felling].list[index])}},
+                				text: JSON.parse(value).text,
+                				index: parseInt(this.state.data.keyList[felling].list[index])});
+
+                console.log('Thought loaded: ' + this.state.data.thought.text);
+            }
+            else
+            {
+                this.setState({data : {...this.state.data, 
+                                        thought : { text: 'Trouble with thought index: ' + index.toString(),
+                                					index: -1}},
+                				text: 'Trouble with thought index: ' + index.toString(),
+                				index: -1});
+            }
+
+        }
+        catch(error){
+            console.log(error.message);
+        }
+    }
+
+    _delete(curVal, index){
+        if (index === this.state.felling)
+            return {index: curVal.index, 
+                    list: curVal.list.filter((e, index) => index !== this.state.data.thought.index)};
+        else
+            return curVal;
+    }
+
+    _deleteThought = async(felling) =>
+    {
+        try{
+        	let list = this.state.data.keyList.slice();
+        	list[felling] = {index: list[felling].index, list: list[felling].list.filter((e, index) => e !== this.state.index)};
+            this.setState({data : {...this.state.data, 
+                                    keyList: list
+                            }});
+
+            console.log('Thought delete');
+            AsyncStorage.setItem(this.state.data.KEY_STORAGE, JSON.stringify(this.state.data.keyList));
+            console.log('Key List saved.');
+        }
+        catch(error){
+            console.log('Fall to save key list: ' + error.message);
+        }
+    }
+
+    _save(curVal, index){
+        if (index === this.props.felling)
+            return {index: curVal.index + 1, 
+                    list: curVal.list.concat(curVal.index.toString())};
+        else
+            return curVal;
+    }
+
+    _saveThought = async(newText, felling) =>
+    {
+        try{
+            const index = this.state.data.keyList[felling].index;
+
+            AsyncStorage.setItem(this.state.data.KEY_THOUGHT[felling] + index.toString(),
+                                JSON.stringify({text: newText}));
+
+            console.log('Thought "' + newText + '" saved.');
+
+        	let list = this.state.data.keyList.slice();
+        	list[felling] = {index: list[felling].index + 1, list: list[felling].list.concat(list[felling].index)};
+            this.setState({data : {...this.state.data, 
+                                    keyList: list
+                            }});
+
+            console.log('Index push inside key list.', 'Index increment inside key list.');
+            console.log('keyList of ' + felling.toString() + ' inside ThoughtView: '
+                        + this.state.data.keyList[felling].index.toString() + ' with ' +
+                        this.state.data.keyList[felling].list.toString())
+
+            AsyncStorage.setItem(this.state.data.KEY_STORAGE, JSON.stringify(this.state.data.keyList));
+            console.log('Key List saved.');
+        }
+        catch(error){
+            console.log('Fall to save thought or/and key list: ' + error.message);
+        }
     }
 
     moveUpView(top) {
@@ -57,10 +218,8 @@ export default class ScrollTest extends Component{
         }
     }
 
-    moveAnimation(value, _delay)
+    moveAnimation(value, _delay = 0)
     {
-        if (arguments.length < 2)
-            _delay = 0;
         Animated.timing(
             this.state.flexValue,
             {toValue: value,
@@ -75,20 +234,20 @@ export default class ScrollTest extends Component{
 
     moveHappySmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Happy, 0);
+        this.moveSmileysFlex(enumSmiley.Happy);
     }
 
     moveNeutralSmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Neutral, 0);
+        this.moveSmileysFlex(enumSmiley.Neutral);
     }
 
     moveSadSmiley()
     {
-        this.moveSmileysFlex(enumSmiley.Sad, 0);
+        this.moveSmileysFlex(enumSmiley.Sad);
     }
 
-    moveSmileysFlex(_smiley, _delay)
+    moveSmileysFlex(_smiley, _delay = 0)
     {
         if (this.state.slide !== enumSlide.Center)
         {
@@ -201,6 +360,12 @@ export default class ScrollTest extends Component{
                             goMain={this.goBackToMain}
                             isTop={true}
                             canPress={this.state.canPress}
+                            data={this.state.data}
+                            text={this.state.text}
+                            index={this.state.index}
+            				_loadThought={this._loadThought}
+            				_saveThought={this._saveThought}
+            				_deleteThought={this._deleteThought}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
@@ -212,6 +377,12 @@ export default class ScrollTest extends Component{
                             goMain={this.goBackToMain}
                             isTop={true}
                             canPress={this.state.canPress}
+                            data={this.state.data}
+                    		text={this.state.text}
+                            index={this.state.index}
+            				_loadThought={this._loadThought}
+            				_saveThought={this._saveThought}
+            				_deleteThought={this._deleteThought}
                             />
 
                     <Smiley smileysFlex={this.state.smileysFlex}
@@ -223,6 +394,12 @@ export default class ScrollTest extends Component{
                             goMain={this.goBackToMain}
                             isTop={true}
                             canPress={this.state.canPress}
+                            data={this.state.data}
+                            text={this.state.text}
+                            index={this.state.index}
+            				_loadThought={this._loadThought}
+            				_saveThought={this._saveThought}
+            				_deleteThought={this._deleteThought}                            
                             />
                 </Animated.View>
 
@@ -245,6 +422,12 @@ export default class ScrollTest extends Component{
                            goMain={this.goBackToMain}
                            isTop={false}
                            canPress={this.state.canPress}
+                           data={this.state.data}
+                            text={this.state.text}
+                            index={this.state.index}
+            				_loadThought={this._loadThought}
+            				_saveThought={this._saveThought}
+            				_deleteThought={this._deleteThought}                           
                            />
 
                    <Smiley felling={enumSmiley.Neutral}
@@ -256,6 +439,12 @@ export default class ScrollTest extends Component{
                            goMain={this.goBackToMain}
                            isTop={false}
                            canPress={this.state.canPress}
+                           data={this.state.data}
+                            text={this.state.text}
+                            index={this.state.index}
+            				_loadThought={this._loadThought}
+            				_saveThought={this._saveThought}
+            				_deleteThought={this._deleteThought}                           
                            />
 
                    <Smiley felling={enumSmiley.Sad}
@@ -267,6 +456,12 @@ export default class ScrollTest extends Component{
                            goMain={this.goBackToMain}
                            isTop={false}
                            canPress={this.state.canPress}
+                           data={this.state.data}
+                            text={this.state.text}
+                            index={this.state.index}
+            				_loadThought={this._loadThought}
+            				_saveThought={this._saveThought}
+            				_deleteThought={this._deleteThought}                           
                            />
 
                 </Animated.View>

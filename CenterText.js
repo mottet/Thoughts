@@ -22,7 +22,7 @@ export default class CenterText extends Component{
                                                          outputRange: [0, 1, 0]
                                                          })
 				    }}>
-				        Thoughts
+				        Thought
 				    </Animated.Text>
 				</View>
             )
