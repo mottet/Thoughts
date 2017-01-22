@@ -84,14 +84,19 @@ export default class ThoughtView extends Component{
         {
             // Need to send the massage
             Animated.spring( this.state.pan,
-                            {toValue: { x: this.state.listenPan.x * 3,
-                                        y: this.state.listenPan.y * 3}}).start();
+                            {toValue: { x: this.state.listenPan.x * 5,
+                                        y: this.state.listenPan.y * 5}}).start();
 
             if (this.props.isTop)
                 this.props._saveThought(this.state.text, this.props.felling).done();
 
             this.props.goMain();
-            this.state.pan.setValue({x: 0, y: 0});
+            
+            Animated.timing(
+                this.state.pan,
+                {toValue: {x: 0, y: 0},
+                delay: 600}
+            ).start();
 
             if (this.props.isTop)
                 this._inputText.setNativeProps({text:''});
@@ -102,14 +107,19 @@ export default class ThoughtView extends Component{
         {
             // Need to delete the massage
             Animated.spring( this.state.pan,
-                            {toValue: { x: this.state.listenPan.x * 3,
-                                        y: this.state.listenPan.y * 3}}).start();
+                            {toValue: { x: this.state.listenPan.x * 7,
+                                        y: this.state.listenPan.y * 7}}).start();
 
             if (!this.props.isTop && this.props.thoughtindex !== -1)
                 this.props._deleteThought(this.props.felling).done();
 
             this.props.goMain();
-            this.state.pan.setValue({x: 0, y: 0});
+            
+            Animated.timing(
+                this.state.pan,
+                {toValue: {x: 0, y: 0},
+                delay: 600}
+            ).start();
 
             if (this.props.isTop)
                 this._inputText.setNativeProps({text:''});
